@@ -1,0 +1,18 @@
+.dotpar {
+    border-radius: 5px;
+    border-style:ridge;
+    margin: auto;
+}
+
+.dotpar, tr {
+    border-radius: 5px;
+    border-style: solid;
+}
+
+.sectionHeading {
+    margin: auto;
+    text-align: center;
+    border: 1px solid #333;
+    background-color: #333;
+    color: rgb(255, 255, 255);
+}

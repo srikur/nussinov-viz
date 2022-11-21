@@ -1,0 +1,93 @@
+<html>
+    <head>
+        <title>CS 466 Final Project - Nussinov Algo</title>
+        <link href="style.css" rel="stylesheet" />
+        <link rel="stylesheet" href="styles.css">
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+        <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script>
+        <script id="MathJax-script" async
+                src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
+        </script>
+    </head>
+
+    <body>
+        <h1>Interactive Visualization for the Nussinov Algorithm</h1>
+        <p>
+            Description: CS 466 final project by Srikur Kanuparthy, Isabella Lebovic, and Neha Kaki
+        </p>
+        <p>
+            Problem: Given RNA sequence <b>v</b> \(\in \{A,U,C,G\}^{n}\), find a <i>pseudoknot-free secondary structure</i> with the maximum number of complementary base pairings.
+        </p>
+
+        <p>
+            Recurrence: \[s[i,j] = \max
+            \begin{cases}
+              0, & \mbox{if $i \ge j$,}\\
+              s[i+1,j-1] + 1, & \mbox{if $i < j$ and $(v_i,v_j) \in \Gamma$,}\\
+              s[i+1,j-1], & \mbox{if $i < j$ and $(v_i,v_j) \not \in \Gamma$,}\\
+              s[i+1,j], & \mbox{if $i < j$,}\\
+              s[i,j-1], & \mbox{if $i < j$,}\\
+              \max_{i < k < j}\{s[i,k]+s[k+1,j]\}, & \mbox{if $i < j$.}
+            \end{cases}\]
+        </p>
+
+        <p>
+            <label>RNA Sequence \(S\)</label>
+            <input id="rna_seq" class='seq' value="GAAC" maxlength="50" />
+        </p>
+
+        <p class="sectionHeading">
+            Dot-Parenthesis Structure
+        </p>
+
+        <table class="dotpar">
+            <thead>
+                <tr>
+                    <td>1</td>
+                    <td>2</td>
+                    <td>3</td>
+                    <td>4</td>
+                </tr>
+                <tr>
+                    <td>G</td>
+                    <td>A</td>
+                    <td>A</td>
+                    <td>C</td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>*</td>
+                    <td>*</td>
+                    <td>*</td>
+                    <td>*</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <p class="sectionHeading">
+            Dynamic Programming Table
+        </p>
+
+        <table>
+            <thead>
+                <tr>
+                    <th class="tableCell">
+                        \(S\)
+                    </th>
+                    <th>
+
+                    </th>
+                </tr>
+            </thead>
+            <tbody>
+                
+            </tbody>
+        </table>
+
+        <p class="sectionHeading">
+            Structure Visualization
+        </p>
+        
+    </body>
+</html>
