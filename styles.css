@@ -1,12 +1,37 @@
-.dotpar {
-    border-radius: 5px;
-    border-style:ridge;
-    margin: auto;
+:root {
+    --cell_size: 32px;
+    --cell_mea_size: 46px;
+    --cell_height: 26px;
 }
 
-.dotpar, tr {
-    border-radius: 5px;
-    border-style: solid;
+.dotpar {
+    margin: auto;
+    border-radius: 2pt solid black;
+    width: 100%;
+}
+
+.dotpar, #td {
+    border-style: double;
+    border-bottom: 1pt solid black;
+    cursor: default;
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
+    font-size: 18pt;
+    border: 1pt solid black;
+    background: white;
+    color: rgb(49, 17, 210);
+    width: 32px;
+    height: 32px;
+}
+
+.matrix {
+    margin: auto;
+    /* border-collapse: none; */
+    /* border-radius: 100%; */
+    font-family: "Courier New", Courier, monospace;
+    text-align: center;
+    font-size: 18pt;
+    border: 2pt solid black;
 }
 
 .sectionHeading {
