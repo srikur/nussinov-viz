@@ -3,8 +3,8 @@
         <title>CS 466 Final Project - Nussinov Algo</title>
         <link rel="stylesheet" href="styles.css">
         <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
-        <!-- <script src="https://polyfill.io/v3/polyfill.min.js?features=es6"></script> -->
         <script src="input.js"></script>
+        <script src="utilities.js"></script>
         <script id="MathJax-script" async
                 src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js">
         </script>
@@ -34,7 +34,7 @@
         <p>
             <label>RNA Sequence \(S\)</label>
             <input id="rna_seq" class='rna_seq' />
-            <label id="invalid_input" style="color: red; display: inherit;">Log: </label>
+            <!-- <label id="invalid_input" style="color: red; display: inherit;">Log: </label> -->
         </p>
 
         <p class="sectionHeading">
@@ -63,7 +63,7 @@
             Dynamic Programming Table
         </p>
 
-        <table class="matrix" border="3">
+        <table class="matrix" id="matrixTable" border="3">
             <tbody id="matrixBody">
             </tbody>
         </table>

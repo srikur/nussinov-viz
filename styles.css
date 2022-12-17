@@ -6,8 +6,6 @@
 
 .dotpar {
     margin: auto;
-    border-radius: 2pt solid black;
-    width: 100%;
 }
 
 .dotpar, #td {
@@ -16,12 +14,11 @@
     cursor: default;
     font-family: "Courier New", Courier, monospace;
     text-align: center;
-    font-size: 18pt;
     border: 1pt solid black;
     background: white;
     color: rgb(49, 17, 210);
-    width: 32px;
-    height: 32px;
+    width: 50pt;
+    height: 50pt;
 }
 
 .matrix {
