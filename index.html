@@ -80,6 +80,17 @@
             Structure Visualization
         </p>
 
+        <p>
+            <label>Force Layout Parameters:</label>
+            <label style="color: red; display: inherit;">NOTE: If the graph layout shows overlapping nodes or links, try changing the parameters and/or dragging the nodes apart with your mouse</label>
+            <label>Charge: </label>
+            <input id="charge_input" value="-300" />
+            <label>Matching Basepair Attraction: </label>
+            <input id="match_basepair_input" value="100" />
+            <label>Regular Nucelotide Attraction: </label>
+            <input id="regular_nucelotide_input" value="10" />
+        </p>
+
         <svg id="visualization" width="1600" height="1000"></svg>
         
     </body>

@@ -115,29 +115,42 @@ $(document).ready(function(){
             asterisks.cells[i].textContent = structure[i];
         }
 
+        createForceGraph();
+    }
+
+    function createForceGraph() {
+
+        const sequence = document.getElementById("rna_seq").value;
+
         // Create JSON object for graph
         let json_node = [];
         for (let i = 0; i < sequence.length; i++) {
-            json_node.push({id: sequence[i] + i, group: 1, label: sequence[i]});
+            json_node.push({id: sequence[i] + i, 
+                            group: 1, 
+                            label: sequence[i], 
+                            cluster: 1});
         }
         let json_link = [];
         for (let i = 0, j = 1; j < sequence.length; i++, j++) {
-            json_link.push({source: sequence[i] + i, target: sequence[j] + j, value: 60});
+            json_link.push({source: sequence[i] + i, 
+                            target: sequence[j] + j, 
+                            value: 10, 
+                            group: "chain"});
         }
         console.log(fold);
         for (let i = 0; i < fold.length; i++) {
-            json_link.push({source: sequence[fold[i][0]] + fold[i][0], target: sequence[fold[i][1]] + fold[i][1], value: 20});
+            json_link.push({source: sequence[fold[i][0]] + fold[i][0], 
+                            target: sequence[fold[i][1]] + fold[i][1], 
+                            value: 100,
+                            group: "basepair"});
         }
         let graph = {nodes: json_node, links: json_link};
         console.log(graph);
         
-
         // Create the force-directed graph
         var svg = d3.select("svg"),
             width = svg.attr("width"),
             height = +svg.attr("height");
-        // console.log("Width: " + width * this.scrollWidth);
-        // console.log("Height: " + height);
 
         var color = d3.scaleOrdinal(d3.schemeCategory20);
 
@@ -147,6 +160,17 @@ $(document).ready(function(){
             .force("charge", d3.forceManyBody().strength(-300))
             .force("center", d3.forceCenter(width / 2, height / 2));
 
+        const link = svg
+            .selectAll('path.link')
+            .data(graph.links)
+            .enter()
+            .append("path")
+            .attr("class", "links")
+            .attr("stroke", (d => d.group == "basepair" ? "red" : "black"))
+            .attr("stroke-opacity", d => 2.6)
+            .attr("stroke-width", d => 11)
+            .attr("stroke-linecap", "round");
+
         const e = svg.selectAll("g")
                    .data(graph.nodes)
                    .enter()
@@ -155,7 +179,8 @@ $(document).ready(function(){
             .attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
             .attr("r", 30)
-            .attr("stroke", "black")
+            .attr("stroke", "grey" )
+            .attr("stroke-width", function (d) { return 3.5; })
             .attr("fill", function(d) { return "palegreen" })
             .call(d3.drag()
                 .on("start", dragstarted)
@@ -176,17 +201,6 @@ $(document).ready(function(){
                 .attr("font-weight", "bold")
                 .attr("y", 2.5)
                 .attr("class", "node-label");
-
-        const link = svg
-            .selectAll('path.link')
-            .data(graph.links)
-            .enter()
-            .append("path")
-            .attr("class", "links")
-            .attr("stroke", "#333")
-            .attr("stroke-opacity", d => 2.6)
-            .attr("stroke-width", function (d) { return 3.5 })
-            .attr("stroke-linecap", "round");
 
         simulation
             .nodes(graph.nodes)
