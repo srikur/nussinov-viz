@@ -148,9 +148,7 @@ $(document).ready(function(){
         node.append("title")
             .text(function(d) { return d.id; });
 
-        var txt = svg.selectAll("circle")
-            .data(graph.nodes)
-            .enter().append("text")
+        node.append("text")
             .append("text")
             .text(function (b) {
                 return b.label;
@@ -281,6 +279,7 @@ $(document).ready(function(){
         
         while (stack.length > 0) {
             const [i, j] = stack.pop();
+            if ((i === j + 1) && (i === table.length - 1)) continue;
             if (i > j+1) continue;
             else if (table[i+1][j] === table[i][j]) {
                 ret.push([i, j]);
