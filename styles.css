@@ -13,6 +13,7 @@
     border-bottom: 1pt solid black;
     cursor: default;
     font-family: "Courier New", Courier, monospace;
+    font-size: 20pt;
     text-align: center;
     border: 1pt solid black;
     background: white;
@@ -27,7 +28,7 @@
     /* border-radius: 100%; */
     font-family: "Courier New", Courier, monospace;
     text-align: center;
-    font-size: 18pt;
+    font-size: 20pt;
     border: 2pt solid black;
 }
 

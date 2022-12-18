@@ -1,6 +1,5 @@
 $(document).ready(function(){
     const input = document.getElementById('rna_seq');
-
     input.addEventListener('keypress', function inputKeypressHandler(e) {
         const key = e.key;
         if (!((key == 'A') || (key == 'U') || (key == 'G') || (key == "C"))) {
@@ -8,7 +7,26 @@ $(document).ready(function(){
         }
     });
 
+    const hairpin_length_input = document.getElementById('hairpin_length');
+    hairpin_length_input.addEventListener('keypress', function inputKeypressHandler(e) {
+        const key = e.key;
+        if (!((key == '0') || (key == '1') || (key == '2') || (key == "3")
+            || (key == "4") || (key == "5") || (key == "6") || (key == "7")
+            || (key == "8") || (key == "9"))) {
+            e.preventDefault();
+        }
+    });
+
+    $('#hairpin_length').bind('input', function () {
+        calculateNussinov();
+    });
+
     $('#rna_seq').bind('input', function() {
+        calculateNussinov();
+    });
+
+    function calculateNussinov() {
+        if (document.getElementById('hairpin_length').value == '') return;
         const sequence = document.getElementById("rna_seq").value;
         if (sequence.length == 0) return;
         for (let i = 0; i < sequence.length; i++) {
@@ -78,6 +96,8 @@ $(document).ready(function(){
             }
         }
 
+        if (parseInt(nussinov_table[0][sequence.length - 1]) == 0) return;
+
         // Calculate the path for the optimal traceback
         var [path, fold] = traceback(nussinov_table, sequence);
 
@@ -102,7 +122,7 @@ $(document).ready(function(){
         }
         let json_link = [];
         for (let i = 0, j = 1; j < sequence.length; i++, j++) {
-            json_link.push({source: sequence[i] + i, target: sequence[j] + j, value: 50});
+            json_link.push({source: sequence[i] + i, target: sequence[j] + j, value: 60});
         }
         console.log(fold);
         for (let i = 0; i < fold.length; i++) {
@@ -124,7 +144,7 @@ $(document).ready(function(){
         var simulation = d3.forceSimulation(graph.nodes)
             .force("link", d3.forceLink(graph.links)
                 .id(d => d.id).distance(d => d.value))
-            .force("charge", d3.forceManyBody().strength(-200))
+            .force("charge", d3.forceManyBody().strength(-300))
             .force("center", d3.forceCenter(width / 2, height / 2));
 
         const e = svg.selectAll("g")
@@ -134,7 +154,7 @@ $(document).ready(function(){
         e.append("circle")
             .attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
-            .attr("r", 20)
+            .attr("r", 30)
             .attr("stroke", "black")
             .attr("fill", function(d) { return "palegreen" })
             .call(d3.drag()
@@ -147,12 +167,12 @@ $(document).ready(function(){
                 .attr("x", function(d) { return d.x; })
                 .attr("y", function(d) { return d.y; })
                 .attr("dx", function(d){return 0;})
-                .attr("dy", function(d) {return 5;})
+                .attr("dy", function(d) {return 10;})
                 .text(function (b) {
                     return b.label;
                 })
                 .attr("text-anchor", "middle")
-                .attr("font-size", 20)
+                .attr("font-size", 30)
                 .attr("font-weight", "bold")
                 .attr("y", 2.5)
                 .attr("class", "node-label");
@@ -168,32 +188,27 @@ $(document).ready(function(){
             .attr("stroke-width", function (d) { return 3.5 })
             .attr("stroke-linecap", "round");
 
-            simulation
-                .nodes(graph.nodes)
-                .on("tick", ticked);
+        simulation
+            .nodes(graph.nodes)
+            .on("tick", ticked);
 
-            simulation.force("link")
-                .links(graph.links);
+        simulation.force("link")
+            .links(graph.links);
 
-                const lineGenerator = d3.line();
+        const lineGenerator = d3.line();
 
-            function ticked() {
-                // link
-                //     .attr("x1", function(d) { return d.source.x; })
-                //     .attr("y1", function(d) { return d.source.y; })
-                //     .attr("x2", function(d) { return d.target.x; })
-                //     .attr("y2", function(d) { return d.target.y; });
-                link.attr('d', d => lineGenerator([
-                    [d.source.x, d.source.y], 
-                    [d.target.x, d.target.y]]));
+        function ticked() {
+            link.attr('d', d => lineGenerator([
+                [d.source.x, d.source.y], 
+                [d.target.x, d.target.y]]));
 
-                e.selectAll("circle")
-                    .attr("cx", function(d) { return d.x; })
-                    .attr("cy", function(d) { return d.y; });
-                e.selectAll("text")
-                    .attr("x", function(d) { return d.x; })
-                    .attr("y", function(d) { return d.y; });
-            }
+            e.selectAll("circle")
+                .attr("cx", function(d) { return d.x; })
+                .attr("cy", function(d) { return d.y; });
+            e.selectAll("text")
+                .attr("x", function(d) { return d.x; })
+                .attr("y", function(d) { return d.y; });
+        }
 
         function dragstarted(d) {
             if (!d3.event.active) simulation.alphaTarget(0.3).restart();
@@ -208,10 +223,10 @@ $(document).ready(function(){
 
         function dragended(d) {
             if (!d3.event.active) simulation.alphaTarget(0);
-                d.fx = null;
-                d.fy = null;
-            }
-    });
+            d.fx = null;
+            d.fy = null;
+        }
+    }
 
     function isEqual(tuple1, tuple2) {
         return tuple1.length === tuple2.length && tuple1.every((element, index) => element === tuple2[index]);
