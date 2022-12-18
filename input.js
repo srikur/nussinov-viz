@@ -21,9 +21,24 @@ $(document).ready(function(){
         calculateNussinov();
     });
 
+    $('#regular_nucelotide_input').bind('input', function () {
+        createForceGraph();
+    });
+
+    $('#match_basepair_input').bind('input', function () {
+        createForceGraph();
+    });
+
+    $('#charge_input').bind('input', function () {
+        createForceGraph();
+    });
+
     $('#rna_seq').bind('input', function() {
         calculateNussinov();
     });
+
+    var fold = [];
+    var path = [];
 
     function calculateNussinov() {
         if (document.getElementById('hairpin_length').value == '') return;
@@ -99,7 +114,7 @@ $(document).ready(function(){
         if (parseInt(nussinov_table[0][sequence.length - 1]) == 0) return;
 
         // Calculate the path for the optimal traceback
-        var [path, fold] = traceback(nussinov_table, sequence);
+        [path, fold] = traceback(nussinov_table, sequence);
 
         // Highlight the optimal path red
         for (let idx in path) {
@@ -120,6 +135,9 @@ $(document).ready(function(){
 
     function createForceGraph() {
 
+        var d3graph = document.getElementById("visualization");
+        while (d3graph.hasChildNodes()) { d3graph.removeChild(d3graph.firstChild); }
+
         const sequence = document.getElementById("rna_seq").value;
 
         // Create JSON object for graph
@@ -134,14 +152,14 @@ $(document).ready(function(){
         for (let i = 0, j = 1; j < sequence.length; i++, j++) {
             json_link.push({source: sequence[i] + i, 
                             target: sequence[j] + j, 
-                            value: 10, 
+                            value: parseInt(document.getElementById("regular_nucelotide_input").value), 
                             group: "chain"});
         }
         console.log(fold);
         for (let i = 0; i < fold.length; i++) {
             json_link.push({source: sequence[fold[i][0]] + fold[i][0], 
                             target: sequence[fold[i][1]] + fold[i][1], 
-                            value: 100,
+                            value: parseInt(document.getElementById("match_basepair_input").value),
                             group: "basepair"});
         }
         let graph = {nodes: json_node, links: json_link};
@@ -157,7 +175,7 @@ $(document).ready(function(){
         var simulation = d3.forceSimulation(graph.nodes)
             .force("link", d3.forceLink(graph.links)
                 .id(d => d.id).distance(d => d.value))
-            .force("charge", d3.forceManyBody().strength(-300))
+            .force("charge", d3.forceManyBody().strength(parseInt(document.getElementById("charge_input").value)))
             .force("center", d3.forceCenter(width / 2, height / 2));
 
         const link = svg
