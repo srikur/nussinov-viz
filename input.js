@@ -65,7 +65,8 @@ $(document).ready(function(){
         }
 
         // Calculate the table
-        var nussinov_table = nussinov(sequence, 0);
+        let hairpin_length = parseInt(document.getElementById("hairpin_length").value);
+        var nussinov_table = nussinov(sequence, hairpin_length);
 
         // Set the values
         var table = document.getElementById("matrixTable");
@@ -129,45 +130,46 @@ $(document).ready(function(){
 
         
             // if (error) throw error;
+        
+        var e = svg.append("g")
+            .attr("class", "nodes")
+            .selectAll("circle")
+            .data(graph.nodes);
 
-            var link = svg.append("g")
-                .attr("class", "links")
-                .attr("stroke", "#000")
-                .attr("stroke-opacity", d => 2.6)
-                .attr("stroke-width", function (d) { return 3.5 })
-                .attr("stroke-linecap", "round")
-                .selectAll("line")
-                .data(graph.links)
-                .enter().append("line");
+        var node = e.enter().append("circle")
+            .attr("r", 20)
+            .attr("stroke", "black")
+            .attr("fill", function(d) { return "lightgreen" })
+            .call(d3.drag()
+                .on("start", dragstarted)
+                .on("drag", dragged)
+                .on("end", dragended));
 
-            var node = svg.append("g")
-                .attr("class", "nodes")
-                .selectAll("circle")
-                .data(graph.nodes)
-                .enter().append("circle")
-                .attr("r", 20)
-                .attr("stroke", "black")
-                .attr("fill", function(d) { return "lightgreen" })
-                .call(d3.drag()
-                    .on("start", dragstarted)
-                    .on("drag", dragged)
-                    .on("end", dragended));
+        node.append("title")
+            .text(function(d) { return d.id; });
 
-            node.append("title")
-                .text(function(d) { return d.id; });
+        var txt = svg.selectAll("circle")
+            .data(graph.nodes)
+            .enter().append("text")
+            .append("text")
+            .text(function (b) {
+                return b.label;
+            })
+            .attr("text-anchor", "middle")
+            .attr("font-size", 8)
+            .attr("font-weight", "bold")
+            .attr("y", 2.5)
+            .attr("class", "node-label");
 
-            var txt = svg.selectAll("circle")
-                .data(graph.nodes)
-                .enter().append("text")
-                .append("text")
-                .text(function (b) {
-                    return b.label;
-                })
-                .attr("text-anchor", "middle")
-                .attr("font-size", 8)
-                .attr("font-weight", "bold")
-                .attr("y", 2.5)
-                .attr("class", "node-label");
+        var link = svg.append("g")
+            .attr("class", "links")
+            .attr("stroke", "#000")
+            .attr("stroke-opacity", d => 2.6)
+            .attr("stroke-width", function (d) { return 3.5 })
+            .attr("stroke-linecap", "round")
+            .selectAll("line")
+            .data(graph.links)
+            .enter().append("line");
 
             simulation
                 .nodes(graph.nodes)
@@ -286,7 +288,7 @@ $(document).ready(function(){
             } else if (table[i][j-1] === table[i][j]) {
                 ret.push([i, j]);
                 stack.push([i, j-1]);
-            } else if (table[i+1][j-1] + 1 === table[i][j]) {
+            } else if ((table[i+1][j-1] + 1 === table[i][j]) && canFormBasePair(sequence[i], sequence[j])) {
                 ret.push([i, j]);
                 fold.push([i, j]);
                 stack.push([i+1, j-1]);
