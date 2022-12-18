@@ -142,13 +142,33 @@ $(document).ready(function(){
 
         // Create JSON object for graph
         let json_node = [];
+        json_node.push({
+            id: "startnode",
+            group: 2,
+            label: "5'"
+        });
+        
         for (let i = 0; i < sequence.length; i++) {
             json_node.push({id: sequence[i] + i, 
                             group: 1, 
-                            label: sequence[i], 
-                            cluster: 1});
+                            label: sequence[i]});
         }
+
+        json_node.push({
+            id: "endnode",
+            group: 2,
+            label: "3'"
+        });
+
         let json_link = [];
+
+        json_link.push({
+            source: "startnode",
+            target: sequence[0] + '0',
+            value: parseInt(document.getElementById("regular_nucelotide_input").value), 
+            group: "chain"
+        });
+
         for (let i = 0, j = 1; j < sequence.length; i++, j++) {
             json_link.push({source: sequence[i] + i, 
                             target: sequence[j] + j, 
@@ -162,6 +182,14 @@ $(document).ready(function(){
                             value: parseInt(document.getElementById("match_basepair_input").value),
                             group: "basepair"});
         }
+
+        json_link.push({
+            source: sequence[sequence.length - 1] + (sequence.length - 1),
+            target: 'endnode',
+            value: parseInt(document.getElementById("regular_nucelotide_input").value), 
+            group: "chain"
+        });
+
         let graph = {nodes: json_node, links: json_link};
         console.log(graph);
         
@@ -197,9 +225,9 @@ $(document).ready(function(){
             .attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
             .attr("r", 30)
-            .attr("stroke", "grey" )
+            .attr("stroke", d => d.group == 2 ? "white" : "grey" )
             .attr("stroke-width", function (d) { return 3.5; })
-            .attr("fill", function(d) { return "palegreen" })
+            .attr("fill", d => d.group == 2 ? "white" : "palegreen")
             .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
@@ -274,8 +302,10 @@ $(document).ready(function(){
     function nussinov(seq, hairpin_length) {
         const n = seq.length;
         var table = new Array(n);
+        var backpointers = new Array(n);
         for (let i = 0; i < n; i++) {
             table[i] = new Array(n).fill(0);
+            backpointers[i] = new Array(n).fill(-1);
         }
     
         let i = 0;
@@ -305,6 +335,22 @@ $(document).ready(function(){
             }
 
             table[i][j] = Math.max(...possible);
+            if (table[i][j] == 0) {
+                backpointers[i][j] = -1;
+            } else if (table[i][j] == parseInt(table[i+1][j-1]) + 1) {
+                backpointers[i][j] = [i+1, j-1];
+            } else if (table[i][j] == parseInt(table[i+1][j-1])) {
+                backpointers[i][j] = [i+1, j-1];
+            } else if (table[i][j] == parseInt(table[i+1][j])) {
+                backpointers[i][j] = [i+1, j];
+            } else {
+                for (let k = i; k < j; k++) {
+                    if (table[i][j] == parseInt(table[i][k]) + parseInt(table[k+1][j])) {
+                    backpointers[i][j] = [i, k, k+1, j];
+                    break;
+                    }
+                }
+            }
             i++;
             j++;
 
