@@ -79,6 +79,11 @@ $(document).ready(function(){
         // Calculate the path for the optimal traceback
         var [path, fold] = traceback(nussinov_table, sequence);
 
+        // Highlight the optimal path red
+        for (let idx in path) {
+            table.rows[path[idx][0]+1].cells[path[idx][1]+1].style = "background-color:rgb(212,108,108);";
+        }
+
         // Calculate the dot-parenthesis structure
         var structure = dotpar(sequence, fold);
         console.log(structure);
@@ -87,6 +92,124 @@ $(document).ready(function(){
         for (let i = 0; i < structure.length; i++) {
             asterisks.cells[i].textContent = structure[i];
         }
+
+        // Create JSON object for graph
+        let json_node = [];
+        for (let i = 0; i < sequence.length; i++) {
+            json_node.push({id: sequence[i] + i, group: 1, label: sequence[i]});
+        }
+        let json_link = [];
+        for (let i = 0, j = 1; j < sequence.length; i++, j++) {
+            json_link.push({source: sequence[i] + i, target: sequence[j] + j, value: 5});
+        }
+        for (let i = 0; i < path.length; i++) {
+            json_link.push({source: sequence[path[i][0]] + path[i][0], target: sequence[path[i][1]] + path[i][1], value: 5});
+        }
+        let graph = {nodes: json_node, links: json_link};
+        console.log(graph);
+        
+
+        // Create the force-directed graph
+        var svg = d3.select("svg"),
+            width = svg.attr("width"),
+            height = +svg.attr("height");
+        // console.log("Width: " + width * this.scrollWidth);
+        // console.log("Height: " + height);
+
+        var color = d3.scaleOrdinal(d3.schemeCategory20);
+
+        var simulation = d3.forceSimulation()
+            .force("link", d3.forceLink()
+                .id(function(d) { return d.id; }))
+            .force("charge", function (d) { return -30; })
+            .force("friction", function (d) { return 0.85; })
+            .force("distance", function(d) { return 105; })
+            .force("strength", function(d) { return 0.05; })
+            .force("center", d3.forceCenter(width / 2, height / 2));
+
+        
+            // if (error) throw error;
+
+            var elem = svg.selectAll
+
+            var link = svg.append("g")
+                .attr("class", "links")
+                .attr("stroke", "#000")
+                .attr("stroke-opacity", d => 2.6)
+                .attr("stroke-width", function (d) { return 3.5 })
+                .attr("stroke-linecap", "round")
+                .selectAll("line")
+                .data(graph.links)
+                .enter().append("line");
+
+            var node = svg.append("g")
+                .attr("class", "nodes")
+                .selectAll("circle")
+                .data(graph.nodes)
+                .enter().append("circle")
+                .attr("r", 20)
+                .attr("stroke", "black")
+                .attr("fill", function(d) { return "grey" })
+                .call(d3.drag()
+                    .on("start", dragstarted)
+                    .on("drag", dragged)
+                    .on("end", dragended));
+
+            node.append("title")
+                .text(function(d) { return d.id; });
+
+            // var txt = svg.append("g")
+            //     .attr("class", "nodes")
+            //     .selectAll("circle")
+            //     .enter().append("text")
+            //     .text(function(d) {
+            //       return d.label;
+            //     })
+            //     .attr({
+            //       "text-anchor": "middle",
+            //       "font-size": function(d) {
+            //         return d.r / ((d.r * 10) / 100);
+            //       },
+            //       "dy": function(d) {
+            //         return d.r / ((d.r * 25) / 100);
+            //       }
+            //     });
+
+            simulation
+                .nodes(graph.nodes)
+                .on("tick", ticked);
+
+            simulation.force("link")
+                .links(graph.links);
+
+            function ticked() {
+                link
+                    .attr("x1", function(d) { return d.source.x; })
+                    .attr("y1", function(d) { return d.source.y; })
+                    .attr("x2", function(d) { return d.target.x; })
+                    .attr("y2", function(d) { return d.target.y; });
+
+                node
+                    .attr("cx", function(d) { return d.x; })
+                    .attr("cy", function(d) { return d.y; });
+            }
+
+        function dragstarted(d) {
+            if (!d3.event.active) simulation.alphaTarget(0.3).restart();
+            d.fx = d.x;
+            d.fy = d.y;
+        }
+
+        function dragged(d) {
+            d.fx = d3.event.x;
+            d.fy = d3.event.y;
+        }
+
+        function dragended(d) {
+            if (!d3.event.active) simulation.alphaTarget(0);
+                d.fx = null;
+                d.fy = null;
+            }
     });
 
     function isEqual(tuple1, tuple2) {
