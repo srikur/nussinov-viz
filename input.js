@@ -23,10 +23,12 @@ $(document).ready(function(){
         var numbers = document.getElementById("numbers");
         var letters = document.getElementById("letters");
         var asterisks = document.getElementById("asterisks");
+        var d3graph = document.getElementById("visualization");
 
         while (numbers.hasChildNodes()) { numbers.removeChild(numbers.firstChild); }
         while (letters.hasChildNodes()) { letters.removeChild(letters.firstChild); }
         while (asterisks.hasChildNodes()) { asterisks.removeChild(asterisks.firstChild); }
+        while (d3graph.hasChildNodes()) { d3graph.removeChild(d3graph.firstChild); }
 
         var count = 1;
         for (let i in sequence) {
@@ -100,10 +102,11 @@ $(document).ready(function(){
         }
         let json_link = [];
         for (let i = 0, j = 1; j < sequence.length; i++, j++) {
-            json_link.push({source: sequence[i] + i, target: sequence[j] + j, value: 5});
+            json_link.push({source: sequence[i] + i, target: sequence[j] + j, value: 50});
         }
-        for (let i = 0; i < path.length; i++) {
-            json_link.push({source: sequence[path[i][0]] + path[i][0], target: sequence[path[i][1]] + path[i][1], value: 5});
+        console.log(fold);
+        for (let i = 0; i < fold.length; i++) {
+            json_link.push({source: sequence[fold[i][0]] + fold[i][0], target: sequence[fold[i][1]] + fold[i][1], value: 20});
         }
         let graph = {nodes: json_node, links: json_link};
         console.log(graph);
@@ -118,24 +121,19 @@ $(document).ready(function(){
 
         var color = d3.scaleOrdinal(d3.schemeCategory20);
 
-        var simulation = d3.forceSimulation()
-            .force("link", d3.forceLink()
-                .id(function(d) { return d.id; }))
-            .force("charge", function (d) { return -30; })
-            .force("friction", function (d) { return 0.85; })
-            .force("distance", function(d) { return 105; })
-            .force("strength", function(d) { return 0.05; })
+        var simulation = d3.forceSimulation(graph.nodes)
+            .force("link", d3.forceLink(graph.links)
+                .id(d => d.id).distance(d => d.value))
+            .force("charge", d3.forceManyBody().strength(-200))
             .force("center", d3.forceCenter(width / 2, height / 2));
 
-        
-            // if (error) throw error;
-        
-        var e = svg.append("g")
-            .attr("class", "nodes")
-            .selectAll("circle")
-            .data(graph.nodes);
-
-        var node = e.enter().append("circle")
+        const e = svg.selectAll("g")
+                   .data(graph.nodes)
+                   .enter()
+                   .append("g");
+        e.append("circle")
+            .attr("cx", function(d) { return d.x; })
+            .attr("cy", function(d) { return d.y; })
             .attr("r", 20)
             .attr("stroke", "black")
             .attr("fill", function(d) { return "palegreen" })
@@ -143,29 +141,32 @@ $(document).ready(function(){
                 .on("start", dragstarted)
                 .on("drag", dragged)
                 .on("end", dragended));
-
-        node.append("title")
-            .text(function(d) { return d.id; });
-
+        e.append("title")
+                .text(function(d) { return d.id; });
         e.append("text")
-            .text(function (b) {
-                return b.label;
-            })
-            .attr("text-anchor", "middle")
-            .attr("font-size", 8)
-            .attr("font-weight", "bold")
-            .attr("y", 2.5)
-            .attr("class", "node-label");
+                .attr("x", function(d) { return d.x; })
+                .attr("y", function(d) { return d.y; })
+                .attr("dx", function(d){return 0;})
+                .attr("dy", function(d) {return 5;})
+                .text(function (b) {
+                    return b.label;
+                })
+                .attr("text-anchor", "middle")
+                .attr("font-size", 20)
+                .attr("font-weight", "bold")
+                .attr("y", 2.5)
+                .attr("class", "node-label");
 
-        var link = svg.append("g")
+        const link = svg
+            .selectAll('path.link')
+            .data(graph.links)
+            .enter()
+            .append("path")
             .attr("class", "links")
-            .attr("stroke", "#000")
+            .attr("stroke", "#333")
             .attr("stroke-opacity", d => 2.6)
             .attr("stroke-width", function (d) { return 3.5 })
-            .attr("stroke-linecap", "round")
-            .selectAll("line")
-            .data(graph.links)
-            .enter().append("line");
+            .attr("stroke-linecap", "round");
 
             simulation
                 .nodes(graph.nodes)
@@ -174,16 +175,24 @@ $(document).ready(function(){
             simulation.force("link")
                 .links(graph.links);
 
-            function ticked() {
-                link
-                    .attr("x1", function(d) { return d.source.x; })
-                    .attr("y1", function(d) { return d.source.y; })
-                    .attr("x2", function(d) { return d.target.x; })
-                    .attr("y2", function(d) { return d.target.y; });
+                const lineGenerator = d3.line();
 
-                node
+            function ticked() {
+                // link
+                //     .attr("x1", function(d) { return d.source.x; })
+                //     .attr("y1", function(d) { return d.source.y; })
+                //     .attr("x2", function(d) { return d.target.x; })
+                //     .attr("y2", function(d) { return d.target.y; });
+                link.attr('d', d => lineGenerator([
+                    [d.source.x, d.source.y], 
+                    [d.target.x, d.target.y]]));
+
+                e.selectAll("circle")
                     .attr("cx", function(d) { return d.x; })
                     .attr("cy", function(d) { return d.y; });
+                e.selectAll("text")
+                    .attr("x", function(d) { return d.x; })
+                    .attr("y", function(d) { return d.y; });
             }
 
         function dragstarted(d) {
