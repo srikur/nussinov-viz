@@ -130,8 +130,6 @@ $(document).ready(function(){
         
             // if (error) throw error;
 
-            var elem = svg.selectAll
-
             var link = svg.append("g")
                 .attr("class", "links")
                 .attr("stroke", "#000")
@@ -149,7 +147,7 @@ $(document).ready(function(){
                 .enter().append("circle")
                 .attr("r", 20)
                 .attr("stroke", "black")
-                .attr("fill", function(d) { return "grey" })
+                .attr("fill", function(d) { return "lightgreen" })
                 .call(d3.drag()
                     .on("start", dragstarted)
                     .on("drag", dragged)
@@ -158,22 +156,18 @@ $(document).ready(function(){
             node.append("title")
                 .text(function(d) { return d.id; });
 
-            // var txt = svg.append("g")
-            //     .attr("class", "nodes")
-            //     .selectAll("circle")
-            //     .enter().append("text")
-            //     .text(function(d) {
-            //       return d.label;
-            //     })
-            //     .attr({
-            //       "text-anchor": "middle",
-            //       "font-size": function(d) {
-            //         return d.r / ((d.r * 10) / 100);
-            //       },
-            //       "dy": function(d) {
-            //         return d.r / ((d.r * 25) / 100);
-            //       }
-            //     });
+            var txt = svg.selectAll("circle")
+                .data(graph.nodes)
+                .enter().append("text")
+                .append("text")
+                .text(function (b) {
+                    return b.label;
+                })
+                .attr("text-anchor", "middle")
+                .attr("font-size", 8)
+                .attr("font-weight", "bold")
+                .attr("y", 2.5)
+                .attr("class", "node-label");
 
             simulation
                 .nodes(graph.nodes)
@@ -285,20 +279,17 @@ $(document).ready(function(){
         
         while (stack.length > 0) {
             const [i, j] = stack.pop();
-            if (i > j) continue;
-            else if (table[i+1][j-1] + 1 === table[i][j]) {
-                ret.push([i, j]);
-                fold.push([i, j]);
-                stack.push([i+1, j-1]);
-            } else if (table[i+1][j-1] === table[i][j]) {
-                ret.push([i, j]);
-                stack.push([i+1, j-1]);
-            } else if (table[i+1][j] === table[i][j]) {
+            if (i > j+1) continue;
+            else if (table[i+1][j] === table[i][j]) {
                 ret.push([i, j]);
                 stack.push([i+1, j]);
             } else if (table[i][j-1] === table[i][j]) {
                 ret.push([i, j]);
                 stack.push([i, j-1]);
+            } else if (table[i+1][j-1] + 1 === table[i][j]) {
+                ret.push([i, j]);
+                fold.push([i, j]);
+                stack.push([i+1, j-1]);
             } else {
                 for (let k = i+1; k < j; k++) {
                     if (table[i][k] + table[k+1][j] === table[i][j]) {
