@@ -9,6 +9,17 @@ $(document).ready(function(){
     });
 
     input.addEventListener('keyup', function inputKeyupHandler(e) {
+
+        const sequence = document.getElementById("rna_seq").value;
+        if (sequence.length == 0) return;
+        for (let i = 0; i < sequence.length; i++) {
+            let key = sequence[i];
+            if (!((key == 'A') || (key == 'U') || (key == 'G') || (key == "C"))) {
+                document.getElementById("rna_seq").value = "";
+                return;
+            }
+        }
+
         // Update the dot-parenthesis structure
         var numbers = document.getElementById("numbers");
         var letters = document.getElementById("letters");
@@ -18,7 +29,6 @@ $(document).ready(function(){
         while (letters.hasChildNodes()) { letters.removeChild(letters.firstChild); }
         while (asterisks.hasChildNodes()) { asterisks.removeChild(asterisks.firstChild); }
 
-        const sequence = document.getElementById("rna_seq").value;
         var count = 1;
         for (let i in sequence) {
             var elem1 = document.createElement("td"); elem1.textContent = count.toString();
@@ -55,7 +65,7 @@ $(document).ready(function(){
         }
 
         // Calculate the table
-        var nussinov_table = nussinov(sequence, 1);
+        var nussinov_table = nussinov(sequence, 0);
 
         // Set the values
         var table = document.getElementById("matrixTable");
@@ -67,12 +77,11 @@ $(document).ready(function(){
         }
 
         // Calculate the path for the optimal traceback
-        var path = traceback(nussinov_table, sequence);
-        // console.log(path);
+        var [path, fold] = traceback(nussinov_table, sequence);
 
         // Calculate the dot-parenthesis structure
-        var structure = dotpar(nussinov_table, path);
-        // console.log(structure);
+        var structure = dotpar(sequence, fold);
+        console.log(structure);
 
         // Update the structure
         for (let i = 0; i < structure.length; i++) {
@@ -137,44 +146,36 @@ $(document).ready(function(){
         return table;
     }
 
-    function dotpar(table, path) {
-        const structure = new Array(table[0].length).fill('-');
-        let start = 0;
-        let end = table[0].length - 1;
-        for (let ind = 1; ind < path.length; ind++) {
-            const x1 = path[ind][0];
-            const y1 = path[ind][1];
-            const x2 = path[ind - 1][0];
-            const y2 = path[ind - 1][1];
-            if (table[x1][y1] < table[x2][y2]) {
-                structure[start] = '(';
-                structure[end] = ')';
-                start += 1;
-                end -= 1;
-            } else {
-                start += 1;
-            }
+    function dotpar(sequence, path) {
+        const structure = new Array(sequence.length).fill('-');
+        for (let pair = 0; pair < path.length; pair++) {
+            structure[Math.min(...path[pair])] = '(';
+            structure[Math.max(...path[pair])] = ')';
         }
         return structure;
     }
 
     function traceback(table, sequence) {
-        const ret = [];
+        const ret = [], fold = [];
         const stack = [];
         stack.push([0, sequence.length - 1]);
         
         while (stack.length > 0) {
             const [i, j] = stack.pop();
             if (i > j) continue;
-            else if (table[i+1][j] === table[i][j]) {
+            else if (table[i+1][j-1] + 1 === table[i][j]) {
+                ret.push([i, j]);
+                fold.push([i, j]);
+                stack.push([i+1, j-1]);
+            } else if (table[i+1][j-1] === table[i][j]) {
+                ret.push([i, j]);
+                stack.push([i+1, j-1]);
+            } else if (table[i+1][j] === table[i][j]) {
                 ret.push([i, j]);
                 stack.push([i+1, j]);
             } else if (table[i][j-1] === table[i][j]) {
                 ret.push([i, j]);
                 stack.push([i, j-1]);
-            } else if (table[i+1][j-1] + 1 === table[i][j]) {
-                ret.push([i, j]);
-                stack.push([i+1, j-1]);
             } else {
                 for (let k = i+1; k < j; k++) {
                     if (table[i][k] + table[k+1][j] === table[i][j]) {
@@ -186,6 +187,6 @@ $(document).ready(function(){
                 }
             }
         }
-        return ret;
+        return [ret, fold];
     }
 });
