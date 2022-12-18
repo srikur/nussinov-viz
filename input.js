@@ -8,8 +8,7 @@ $(document).ready(function(){
         }
     });
 
-    input.addEventListener('keyup', function inputKeyupHandler(e) {
-
+    $('#rna_seq').bind('input', function() {
         const sequence = document.getElementById("rna_seq").value;
         if (sequence.length == 0) return;
         for (let i = 0; i < sequence.length; i++) {
@@ -139,7 +138,7 @@ $(document).ready(function(){
         var node = e.enter().append("circle")
             .attr("r", 20)
             .attr("stroke", "black")
-            .attr("fill", function(d) { return "lightgreen" })
+            .attr("fill", function(d) { return "palegreen" })
             .call(d3.drag()
                 .on("start", dragstarted)
                 .on("drag", dragged)
@@ -148,8 +147,7 @@ $(document).ready(function(){
         node.append("title")
             .text(function(d) { return d.id; });
 
-        node.append("text")
-            .append("text")
+        e.append("text")
             .text(function (b) {
                 return b.label;
             })
