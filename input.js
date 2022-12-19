@@ -37,8 +37,56 @@ $(document).ready(function(){
         calculateNussinov();
     });
 
+    var originalStyle = "";
+    $('#matrixTable').on('mouseenter','td', function(e) {
+        // Construct the tooltip
+        // console.log(this);
+        var x_cell = this.parentNode.rowIndex, y_cell = this.cellIndex;
+        if (x_cell < 1 || y_cell < 1) return;
+
+        var x = e.pageX, y = e.pageY;
+        var targetDom = $('#' + x_cell + '_' + y_cell);
+        // targetDom.removeClass('optimal-path-cell');
+        targetDom.addClass('highlight-cell');
+
+        var pos = targetDom.offset();
+        // targetDom.addClass('highlight-main');
+
+        if ($('#tooltip').length === 0) {
+            $('body').prepend($('<div />').attr('id', 'tooltip'));
+        }
+        var tt = $('#tooltip').html("");
+        var tooltipHeight = 100;
+
+        var xBorder = x + tt.width() + 30;
+        if (xBorder > $(window).width()) x -= (xBorder - $(window).width());
+
+        var yBorder = y + tt.height() + 30;
+        if (yBorder > $(window).height()) y -= (tooltipHeight * 2);
+
+        console.log(backpointers[x_cell-1][y_cell-1]);
+
+        let text = `
+            <p><label style='color: blue'> This cell is at (${x_cell},${y_cell}) with value ${this.innerHTML}</label><p>
+
+        `;
+
+
+        tt.append(text);
+        tt.css('left', x + 10);
+        tt.css('color', "rgb(49, 17, 210)");
+        tt.css('top', y + 10);
+        tt.css('display', 'block');
+    }).on('mouseleave', 'td', function(e) {
+        // $('#' + this.cellIndex + '_' + this.parentNode.rowIndex).addClass("optimal-path-cell");
+        $('#' + this.parentNode.rowIndex + '_' + this.cellIndex).removeClass('highlight-cell');
+        $('#tooltip').css('display', 'none');
+    });
+
     var fold = [];
     var path = [];
+    var nussinov_table = [];
+    var backpointers = [];
 
     function calculateNussinov() {
         if (document.getElementById('hairpin_length').value == '') return;
@@ -85,13 +133,17 @@ $(document).ready(function(){
                 for (let j = 0; j < sequence.length; j++) {
                     var col = document.createElement("td");
                     col.textContent = sequence[j];
+                    col.id = i + "_" + (j+1);
+                    col.style = 'color: purple';
                     row.appendChild(col);
                 }
             } else {
                 var col1 = document.createElement("td"); col1.textContent = sequence[i-1];
+                col1.style = 'color: purple';
                 row.appendChild(col1);
                 for (let j = 0; j < sequence.length; j++) {
                     var col = document.createElement("td"); col.textContent = "0";
+                    col.id = i + "_" + (j+1);
                     row.appendChild(col);
                 }
             }
@@ -100,7 +152,9 @@ $(document).ready(function(){
 
         // Calculate the table
         let hairpin_length = parseInt(document.getElementById("hairpin_length").value);
-        var nussinov_table = nussinov(sequence, hairpin_length);
+        [nussinov_table, backpointers] = nussinov(sequence, hairpin_length);
+        console.log(nussinov_table);
+        console.log(backpointers);
 
         // Set the values
         var table = document.getElementById("matrixTable");
@@ -118,12 +172,13 @@ $(document).ready(function(){
 
         // Highlight the optimal path red
         for (let idx in path) {
-            table.rows[path[idx][0]+1].cells[path[idx][1]+1].style = "background-color:rgb(212,108,108);";
+            $("#" + (path[idx][0]+1) + "_" + (path[idx][1]+1)).addClass("optimal-path-cell");
+            // table.rows[path[idx][0]+1].cells[path[idx][1]+1].style = "background-color:rgb(212,108,108);";
         }
 
         // Calculate the dot-parenthesis structure
         var structure = dotpar(sequence, fold);
-        console.log(structure);
+        // console.log(structure);
 
         // Update the structure
         for (let i = 0; i < structure.length; i++) {
@@ -175,7 +230,7 @@ $(document).ready(function(){
                             value: parseInt(document.getElementById("regular_nucelotide_input").value), 
                             group: "chain"});
         }
-        console.log(fold);
+        // console.log(fold);
         for (let i = 0; i < fold.length; i++) {
             json_link.push({source: sequence[fold[i][0]] + fold[i][0], 
                             target: sequence[fold[i][1]] + fold[i][1], 
@@ -191,7 +246,7 @@ $(document).ready(function(){
         });
 
         let graph = {nodes: json_node, links: json_link};
-        console.log(graph);
+        // console.log(graph);
         
         // Create the force-directed graph
         var svg = d3.select("svg"),
@@ -221,6 +276,7 @@ $(document).ready(function(){
                    .data(graph.nodes)
                    .enter()
                    .append("g");
+
         e.append("circle")
             .attr("cx", function(d) { return d.x; })
             .attr("cy", function(d) { return d.y; })
@@ -247,6 +303,11 @@ $(document).ready(function(){
                 .attr("font-weight", "bold")
                 .attr("y", 2.5)
                 .attr("class", "node-label");
+
+        svg.call(d3.zoom().on("zoom", function () {
+            e.attr("transform", d3.event.transform);
+            link.attr("transform", d3.event.transform);
+        }));
 
         simulation
             .nodes(graph.nodes)
@@ -285,6 +346,11 @@ $(document).ready(function(){
             if (!d3.event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
+        }
+
+        function zoomed(event) {
+            console.log(event);
+            e.selectAll("circle").attr("transform", event.transform);
         }
     }
 
@@ -360,7 +426,7 @@ $(document).ready(function(){
                 j = prev_j;
             }
         }
-        return table;
+        return [table, backpointers];
     }
 
     function dotpar(sequence, path) {
