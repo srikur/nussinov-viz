@@ -37,10 +37,8 @@ $(document).ready(function(){
         calculateNussinov();
     });
 
-    var originalStyle = "";
     $('#matrixTable').on('mouseenter mouseleave','td', function(e) {
         // Construct the tooltip
-        // console.log(this);
         var x_cell = this.parentNode.rowIndex, y_cell = this.cellIndex;
         if (x_cell < 1 || y_cell < 1) return;
         let back_cells = backpointers[x_cell-1][y_cell-1];
@@ -48,11 +46,7 @@ $(document).ready(function(){
 
         if (e.type === 'mouseenter') {
             var x = e.pageX, y = e.pageY;
-            // targetDom.removeClass('optimal-path-cell');
             targetDom.addClass('highlight-cell');
-
-            // var pos = targetDom.offset();
-            // targetDom.addClass('highlight-main');
 
             if ($('#tooltip').length === 0) {
                 $('body').prepend($('<div />').attr('id', 'tooltip'));
@@ -66,7 +60,6 @@ $(document).ready(function(){
             var yBorder = y + tt.height() + 30;
             if (yBorder > $(window).height()) y -= (tooltipHeight * 2);
 
-            console.log(back_cells);
             if (back_cells.length >= 2) {
                 $('#' + (back_cells[0] + 1) + '_' + (back_cells[1] + 1)).addClass('backtrace-highlight');
                 if (back_cells.length === 4) $('#' + (back_cells[2] + 1) + '_' + (back_cells[3] + 1)).addClass('backtrace-highlight');
@@ -82,8 +75,6 @@ $(document).ready(function(){
                 <p><label style='color: green'>Backpointer: (${(back_cells[0] + 1)},${(back_cells[1] + 1)}) and 
                 (${(back_cells[2] + 1)},${(back_cells[3] + 1)})</p>
             `;
-
-
 
             if (back_cells.length == 4) tt.append(text2); else if (back_cells.length == 2) tt.append(text);
             tt.css('left', x + 10);
@@ -194,7 +185,6 @@ $(document).ready(function(){
 
         // Calculate the dot-parenthesis structure
         var structure = dotpar(sequence, fold);
-        // console.log(structure);
 
         // Update the structure
         for (let i = 0; i < structure.length; i++) {
@@ -246,7 +236,6 @@ $(document).ready(function(){
                             value: parseInt(document.getElementById("regular_nucelotide_input").value), 
                             group: "chain"});
         }
-        // console.log(fold);
         for (let i = 0; i < fold.length; i++) {
             json_link.push({source: sequence[fold[i][0]] + fold[i][0], 
                             target: sequence[fold[i][1]] + fold[i][1], 
@@ -262,14 +251,11 @@ $(document).ready(function(){
         });
 
         let graph = {nodes: json_node, links: json_link};
-        // console.log(graph);
         
         // Create the force-directed graph
         var svg = d3.select("svg"),
             width = svg.attr("width"),
             height = +svg.attr("height");
-
-        var color = d3.scaleOrdinal(d3.schemeCategory20);
 
         var simulation = d3.forceSimulation(graph.nodes)
             .force("link", d3.forceLink(graph.links)
@@ -362,11 +348,6 @@ $(document).ready(function(){
             if (!d3.event.active) simulation.alphaTarget(0);
             d.fx = null;
             d.fy = null;
-        }
-
-        function zoomed(event) {
-            console.log(event);
-            e.selectAll("circle").attr("transform", event.transform);
         }
     }
 
