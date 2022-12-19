@@ -48,6 +48,10 @@
     background-color: teal;
 }
 
+.backtrace-highlight {
+    background-color: yellow;
+}
+
 #tooltip {
 	display:block;
 	position: absolute;

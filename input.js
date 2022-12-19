@@ -38,49 +38,67 @@ $(document).ready(function(){
     });
 
     var originalStyle = "";
-    $('#matrixTable').on('mouseenter','td', function(e) {
+    $('#matrixTable').on('mouseenter mouseleave','td', function(e) {
         // Construct the tooltip
         // console.log(this);
         var x_cell = this.parentNode.rowIndex, y_cell = this.cellIndex;
         if (x_cell < 1 || y_cell < 1) return;
-
-        var x = e.pageX, y = e.pageY;
+        let back_cells = backpointers[x_cell-1][y_cell-1];
         var targetDom = $('#' + x_cell + '_' + y_cell);
-        // targetDom.removeClass('optimal-path-cell');
-        targetDom.addClass('highlight-cell');
 
-        var pos = targetDom.offset();
-        // targetDom.addClass('highlight-main');
+        if (e.type === 'mouseenter') {
+            var x = e.pageX, y = e.pageY;
+            // targetDom.removeClass('optimal-path-cell');
+            targetDom.addClass('highlight-cell');
 
-        if ($('#tooltip').length === 0) {
-            $('body').prepend($('<div />').attr('id', 'tooltip'));
+            // var pos = targetDom.offset();
+            // targetDom.addClass('highlight-main');
+
+            if ($('#tooltip').length === 0) {
+                $('body').prepend($('<div />').attr('id', 'tooltip'));
+            }
+            var tt = $('#tooltip').html("");
+            var tooltipHeight = 100;
+
+            var xBorder = x + tt.width() + 30;
+            if (xBorder > $(window).width()) x -= (xBorder - $(window).width());
+
+            var yBorder = y + tt.height() + 30;
+            if (yBorder > $(window).height()) y -= (tooltipHeight * 2);
+
+            console.log(back_cells);
+            if (back_cells.length >= 2) {
+                $('#' + (back_cells[0] + 1) + '_' + (back_cells[1] + 1)).addClass('backtrace-highlight');
+                if (back_cells.length === 4) $('#' + (back_cells[2] + 1) + '_' + (back_cells[3] + 1)).addClass('backtrace-highlight');
+            }
+
+            let text = `
+                <p><label style='color: blue'> This cell is at (${x_cell},${y_cell}) with value ${this.innerHTML}</label><p>
+                <p><label style='color: green'>Backpointer: (${(back_cells[0] + 1)},${(back_cells[1] + 1)})</p>
+            `;
+
+            let text2 = `
+                <p><label style='color: blue'> This cell is at (${x_cell},${y_cell}) with value ${this.innerHTML}</label><p>
+                <p><label style='color: green'>Backpointer: (${(back_cells[0] + 1)},${(back_cells[1] + 1)}) and 
+                (${(back_cells[2] + 1)},${(back_cells[3] + 1)})</p>
+            `;
+
+
+
+            if (back_cells.length == 4) tt.append(text2); else if (back_cells.length == 2) tt.append(text);
+            tt.css('left', x + 10);
+            tt.css('color', "rgb(49, 17, 210)");
+            tt.css('top', y + 10);
+            tt.css('display', 'block');
         }
-        var tt = $('#tooltip').html("");
-        var tooltipHeight = 100;
-
-        var xBorder = x + tt.width() + 30;
-        if (xBorder > $(window).width()) x -= (xBorder - $(window).width());
-
-        var yBorder = y + tt.height() + 30;
-        if (yBorder > $(window).height()) y -= (tooltipHeight * 2);
-
-        console.log(backpointers[x_cell-1][y_cell-1]);
-
-        let text = `
-            <p><label style='color: blue'> This cell is at (${x_cell},${y_cell}) with value ${this.innerHTML}</label><p>
-
-        `;
-
-
-        tt.append(text);
-        tt.css('left', x + 10);
-        tt.css('color', "rgb(49, 17, 210)");
-        tt.css('top', y + 10);
-        tt.css('display', 'block');
-    }).on('mouseleave', 'td', function(e) {
-        // $('#' + this.cellIndex + '_' + this.parentNode.rowIndex).addClass("optimal-path-cell");
-        $('#' + this.parentNode.rowIndex + '_' + this.cellIndex).removeClass('highlight-cell');
-        $('#tooltip').css('display', 'none');
+        if (e.type === 'mouseleave') {
+            if (back_cells.length >= 2) {
+                $('#' + (back_cells[0] + 1) + '_' + (back_cells[1] + 1)).removeClass('backtrace-highlight');
+                if (back_cells.length === 4) $('#' + (back_cells[2] + 1) + '_' + (back_cells[3] + 1)).removeClass('backtrace-highlight');
+            }
+            targetDom.removeClass('highlight-cell');
+            $('#tooltip').css('display', 'none');
+        }
     });
 
     var fold = [];
@@ -153,8 +171,6 @@ $(document).ready(function(){
         // Calculate the table
         let hairpin_length = parseInt(document.getElementById("hairpin_length").value);
         [nussinov_table, backpointers] = nussinov(sequence, hairpin_length);
-        console.log(nussinov_table);
-        console.log(backpointers);
 
         // Set the values
         var table = document.getElementById("matrixTable");
@@ -403,12 +419,14 @@ $(document).ready(function(){
             table[i][j] = Math.max(...possible);
             if (table[i][j] == 0) {
                 backpointers[i][j] = -1;
+            } else if (table[i][j] == parseInt(table[i+1][j])) {
+                backpointers[i][j] = [i+1, j];
+            } else if (table[i][j] == parseInt(table[i][j-1])) {
+                backpointers[i][j] = [i, j-1];
             } else if (table[i][j] == parseInt(table[i+1][j-1]) + 1) {
                 backpointers[i][j] = [i+1, j-1];
             } else if (table[i][j] == parseInt(table[i+1][j-1])) {
                 backpointers[i][j] = [i+1, j-1];
-            } else if (table[i][j] == parseInt(table[i+1][j])) {
-                backpointers[i][j] = [i+1, j];
             } else {
                 for (let k = i; k < j; k++) {
                     if (table[i][j] == parseInt(table[i][k]) + parseInt(table[k+1][j])) {
